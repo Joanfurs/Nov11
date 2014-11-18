@@ -12,7 +12,7 @@ class LittleView: UIView {
 
 	override init(frame: CGRect) {
 		super.init(frame: frame)
-		self.backgroundColor = UIColor.greenColor();
+		self.backgroundColor = UIColor.clearColor();
 	}
 
 	required init(coder aDecoder: NSCoder) {

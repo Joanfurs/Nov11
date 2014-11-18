@@ -4,23 +4,28 @@ import GLKit
 
 class View: UIView {
 
-
 	let littleView: LittleView;
 
 	required init(coder aDecoder: NSCoder) {
-	
+		
 		let f: CGRect = CGRectMake(170, 300, 60, 60);
 		littleView = LittleView(frame: f);
 		super.init(coder: aDecoder)
 		backgroundColor = UIColor.blueColor();
 		addSubview(littleView);
+		
 	}
-
+	
+	func CGContextPathContainsPoint(context: CGContext!, point: CGPoint, mode: CGPathDrawingMode) -> Bool{
+	return true;
+	}
+	
 	override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
 		assert(touches.count > 0);
 		let touch: UITouch = touches.anyObject() as UITouch;
 		let point: CGPoint = touch.locationInView(self);
-		littleView.center = point;
+		let f: CGRect = CGRectMake(point.x - 30, point.y - 30, 60, 60);
+		addSubview(LittleView(frame: f));
 	}
 
 	override func touchesMoved(touches: NSSet, withEvent event: UIEvent) {
@@ -35,12 +40,14 @@ class View: UIView {
 
 		override func drawRect(rect: CGRect) {
 		
+		let screen: UIScreen = UIScreen.mainScreen();
+		frame = screen.applicationFrame;
+		
 		let s: String = "MADAGASCAR";
 		let font: UIFont = UIFont.systemFontOfSize(54);
 		let foregroundColor: UIColor = UIColor.redColor();
 		let attributes: [NSObject: AnyObject] = [NSFontAttributeName: font,
 		NSForegroundColorAttributeName: foregroundColor];
-		let screen: UIScreen = UIScreen.mainScreen();
 		let applicationFrame: CGRect = screen.applicationFrame;
 		let point: CGPoint = applicationFrame.origin;
 		s.drawAtPoint(point, withAttributes: attributes);
@@ -134,6 +141,7 @@ class View: UIView {
 
 		CGContextSetRGBFillColor(c, 0, 1, 0, 1);
 		CGContextFillPath(c);
+
 	}
 
 }
