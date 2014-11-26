@@ -5,6 +5,7 @@ import GLKit
 class View: UIView {
 
 	let littleView: LittleView;
+	let coastline: CGMutablePathRef = CGPathCreateMutable();
 
 	required init(coder aDecoder: NSCoder) {
 		
@@ -16,16 +17,15 @@ class View: UIView {
 		
 	}
 	
-	func CGContextPathContainsPoint(context: CGContext!, point: CGPoint, mode: CGPathDrawingMode) -> Bool{
-	return true;
-	}
-	
 	override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
 		assert(touches.count > 0);
 		let touch: UITouch = touches.anyObject() as UITouch;
 		let point: CGPoint = touch.locationInView(self);
-		let f: CGRect = CGRectMake(point.x - 30, point.y - 30, 60, 60);
-		addSubview(LittleView(frame: f));
+
+		if CGPathContainsPoint(coastline, nil, point, true) {
+			let f: CGRect = CGRectMake(point.x - 30, point.y - 30, 60, 60);
+			addSubview(LittleView(frame: f));
+		}
 	}
 
 	override func touchesMoved(touches: NSSet, withEvent event: UIEvent) {
@@ -120,28 +120,40 @@ class View: UIView {
 
 		let latitude: CGFloat =   -18.04;
 		let longitude: CGFloat =  46.87;
+		
+		let c: CGContextRef = UIGraphicsGetCurrentContext();
+		
+		let radians: Float = GLKMathDegreesToRadians(Float(latitude));
 
 		let scale: CGFloat =  0.05 * bounds.size.height;
+				//Create three transformation objects.
+		//We saw our first transformation object in exercise 8 of Animate.
 
-		let c: CGContextRef = UIGraphicsGetCurrentContext();
-		CGContextBeginPath(c);
+		let translate1: CGAffineTransform = CGAffineTransformMakeTranslation(bounds.size.width / 2, bounds.size.height / 2);
+		let scale1: CGAffineTransform = CGAffineTransformMakeScale(scale * CGFloat(cos(radians)), -scale);
+		let translate2: CGAffineTransform = CGAffineTransformMakeTranslation(-longitude, -latitude);
 
-		CGContextTranslateCTM(c, bounds.size.width / 2, bounds.size.height / 2);
+		//Concatenate the three transformation objects
+		//into one big transformation object.
 
-		let radians: Float = GLKMathDegreesToRadians(Float(latitude));
-		CGContextScaleCTM(c, scale * CGFloat(cos(radians)), -scale);
+		let t1: CGAffineTransform = CGAffineTransformConcat(translate2, scale1);
+		let bigTransform: CGAffineTransform = CGAffineTransformConcat(t1, translate1);
 
-		CGContextTranslateCTM(c, -longitude, -latitude);
+		//Build up the coastline, applying the bigTransform at each step.
 
-		CGContextMoveToPoint(c, a[0].longitude, a[0].latitude);
+		CGPathMoveToPoint(coastline, &bigTransform, a[0].longitude, a[0].latitude);
 		for var i = 1; i < a.count; ++i {
-			CGContextAddLineToPoint(c, a[i].longitude, a[i].latitude);
+			CGPathAddLineToPoint(coastline, &bigTransform, a[i].longitude, a[i].latitude);
 		}
-		CGContextClosePath(c);
+		CGPathCloseSubpath(coastline);
 
-		CGContextSetRGBFillColor(c, 0, 1, 0, 1);
+		//Paint the land mass on the screen (very simple).
+
+		
+		CGContextBeginPath(c);
+		CGContextAddPath(c, coastline);
+		CGContextSetRGBFillColor(c, 0, 1, 0, 1);	//green, opaque
 		CGContextFillPath(c);
-
 	}
 
 }
